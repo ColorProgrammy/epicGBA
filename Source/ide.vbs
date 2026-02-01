@@ -14,11 +14,9 @@ End Function
 Function GetProjectsPath()
     Dim configPath, path, line, file, fso
     Set fso = CreateObject("Scripting.FileSystemObject")
-    
-    ' По умолчанию - папка Projects в корне
+
     path = GetRootPath() & "\Projects"
-    
-    ' Пробуем прочитать из конфига
+
     configPath = GetConfigPath()
     If fso.FileExists(configPath) Then
         Set file = fso.OpenTextFile(configPath, 1)
@@ -27,17 +25,13 @@ Function GetProjectsPath()
             If Left(line, 13) = "PROJECTS_PATH=" Then
                 Dim tempPath
                 tempPath = Mid(line, 14)
-                ' Если путь относительный, делаем его абсолютным относительно корня
                 If Not (Left(tempPath, 2) = "\\" Or Mid(tempPath, 2, 1) = ":") Then
                     If Left(tempPath, 1) = "." Then
-                        ' Относительный путь
                         path = fso.BuildPath(GetRootPath(), tempPath)
                     Else
-                        ' Относительный путь без точки
                         path = GetRootPath() & "\" & tempPath
                     End If
                 Else
-                    ' Абсолютный путь
                     path = tempPath
                 End If
                 Exit Do
@@ -46,7 +40,6 @@ Function GetProjectsPath()
         file.Close
     End If
     
-    ' Создаем папку если не существует
     If Not fso.FolderExists(path) Then
         On Error Resume Next
         fso.CreateFolder path
