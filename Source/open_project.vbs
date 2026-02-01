@@ -1,6 +1,39 @@
 ' Open GBA Project
 Option Explicit
 
+Function GetRootPath()
+    Dim fso
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    GetRootPath = fso.GetParentFolderName(fso.GetParentFolderName(WScript.ScriptFullName))
+End Function
+
+Function GetProjectsPath()
+    Dim configPath, projectsPath, file, line, fso
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    ' Default projects path
+    projectsPath = GetRootPath() & "\Projects"
+    
+    ' Try to read from config.ini
+    configPath = GetRootPath() & "\config.ini"
+    
+    If fso.FileExists(configPath) Then
+        Set file = fso.OpenTextFile(configPath, 1)
+        
+        Do While Not file.AtEndOfStream
+            line = Trim(file.ReadLine)
+            If InStr(1, line, "PROJECTS_PATH=", vbTextCompare) = 1 Then
+                projectsPath = Trim(Mid(line, InStr(line, "=") + 1))
+                Exit Do
+            End If
+        Loop
+        
+        file.Close
+    End If
+    
+    GetProjectsPath = projectsPath
+End Function
+
 Dim fso, shell
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
@@ -113,29 +146,3 @@ Select Case actionChoice
         ' Default: open project folder
         shell.Run "explorer.exe """ & projectPath & """"
 End Select
-
-Function GetProjectsPath()
-    Dim configPath, projectsPath, file, line
-    
-    ' Default projects path
-    projectsPath = fso.GetParentFolderName(WScript.ScriptFullName) & "\Projects"
-    
-    ' Try to read from config.ini
-    configPath = fso.GetParentFolderName(WScript.ScriptFullName) & "\config.ini"
-    
-    If fso.FileExists(configPath) Then
-        Set file = fso.OpenTextFile(configPath, 1)
-        
-        Do While Not file.AtEndOfStream
-            line = Trim(file.ReadLine)
-            If InStr(1, line, "PROJECTS_PATH=", vbTextCompare) = 1 Then
-                projectsPath = Trim(Mid(line, InStr(line, "=") + 1))
-                Exit Do
-            End If
-        Loop
-        
-        file.Close
-    End If
-    
-    GetProjectsPath = projectsPath
-End Function
